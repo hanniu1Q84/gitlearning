@@ -5,7 +5,7 @@ using namespace std;
 class Human {
 public:
 	Human(const string& name, int age):
-		m_name(name), m_age(age) {}
+		m_name(name), m_age(age), m_id(100) {}
 	void eat(const string& food) const{
 		cout << "我在吃" << food << endl;
 	}
@@ -15,16 +15,25 @@ public:
 protected: //保护类型成员可以在类的内部和子类中访问
 	string m_name;
 	int m_age;	
+	//私有成员函数子类无法直接访问，但是可以通过访问接口间接访问
+	const int& get_id(void) const{
+		return m_id;
+	}
+private:
+	int m_id;
 };
 
-//学生类，集成人类
+//学生类，继承人类
 class Student:public Human {
 public:
+	//基类子对象：子类对象包含基类的那部分成员
+	//通过初始化表显示的指明基类子对象的初始化方式
 	Student(const string& name, int age, int no):
 		Human(name,age), m_no(no) {}
 	void who(void) const{
 		cout << "我叫" << m_name << ", 今年" << 
-			m_age << "随， 学号是" << m_no << endl;
+			m_age << "岁， 学号是" << m_no << 
+			", 身份证是：" << get_id() << endl;
 	}
 	void learn(const string& course) const {
 		cout << "我在学"<< course << endl;
@@ -33,7 +42,7 @@ private:
 	int m_no;
 };
 
-//教师类，集成人类
+//教师类，继承人类
 class Teacher:public Human {
 public:
 	Teacher(const string& name, int age,
@@ -41,11 +50,11 @@ public:
 				m_salary(salary) {}
 	void who(void) const {
 		cout << "我叫" << m_name << ",今年，" << 
-			m_age << "随， 每个月的薪水为：" << 
+			m_age << "岁， 每个月的薪水为：" << 
 			m_salary << endl;
 	}
 	void teach(const string& course) {
-		cout << "我叫" << course << endl;
+		cout << "我教" << course << endl;
 	}
 private:
 	double m_salary;
@@ -63,6 +72,22 @@ int main(void) {
 	t.eat("面条");
 	t.sleep(6);
 	t.teach("佛法");
+
+	//向上造型，安全，可以隐式转换
+	//ph：指向子类对象的基类指针
+	Human* ph = &s;
+	ph->eat("桃子");
+	ph->sleep(3);
+	//ph->who();
+	
+	//安全的向下造型，必须显氏完成
+	Student* ps = static_cast<Student*>(ph);
+	ps->who();
+
+	//危险的向下造型
+	Human h("张飞", 28);
+	ps = static_cast<Student*>(&h);
+	ps->who();
 
 	return 0;
 }
